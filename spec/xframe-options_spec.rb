@@ -38,5 +38,22 @@ describe Rack::XFrameOptions do
         last_response.headers['X-Frame-Options'].should == "SAMEORIGIN"
       end
     end
+
+    describe "Except" do
+      let(:app) {
+        Rack::Builder.new do
+          use Rack::XFrameOptions, "SAMEORIGIN", ["/this/is/frameable", "/this/too"]
+          run SampleApp.new
+        end
+      }
+
+      it "should not set X-Frame-Options on the excluded domains" do
+        get '/this/is/frameable'
+        last_response.headers['X-Frame-Options'].should == nil
+
+        get '/this/too'
+        last_response.headers['X-Frame-Options'].should == nil
+      end
+    end
   end
 end
